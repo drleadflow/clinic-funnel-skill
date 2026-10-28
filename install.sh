@@ -1,23 +1,34 @@
 #!/usr/bin/env bash
-# Installs the clinic-funnel skill for Claude Code: ~/.claude/skills/clinic-funnel -> this folder.
+# Installs the clinic-funnel skill for Claude Code. Nothing else is installed.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEST="$HOME/.claude/skills/clinic-funnel"
-mkdir -p "$HOME/.claude/skills"
-if [ -e "$DEST" ] && [ "$(readlink "$DEST" || true)" != "$HERE" ]; then
-  echo "Something already exists at $DEST. Move it, then run this again." >&2; exit 1
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "This skill needs Python 3, which isn't on this computer yet."
+  echo "  Mac: run 'xcode-select --install' (or get it from python.org), then run ./install.sh again."
+  echo "  Windows/Linux: install Python 3 from python.org, then run ./install.sh again."
+  exit 1
 fi
-ln -sfn "$HERE" "$DEST"
-python3 -m pip install --quiet --user pillow playwright || echo "Install Pillow + Playwright yourself: python3 -m pip install pillow playwright"
-if [ "$(python3 -c 'import json;print(json.load(open("'"$HERE"'/studio.json"))["name"])')" = "Your Studio" ]; then
-  read -r -p "Your studio or agency name (shown as 'Prototype by ...' on every funnel): " NAME || NAME=""
+
+mkdir -p "$HOME/.claude/skills"
+if [ -L "$DEST" ] || [ ! -e "$DEST" ]; then
+  ln -sfn "$HERE" "$DEST"
+elif [ "$(cd "$DEST" && pwd)" != "$HERE" ]; then
+  echo "A different clinic-funnel skill is already at $DEST."
+  echo "Rename or delete that folder, then run ./install.sh again."
+  exit 1
+fi
+
+NAME_NOW="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("name",""))' "$HERE/studio.json")"
+if [ "$NAME_NOW" = "Your Studio" ] && [ -t 0 ]; then
+  read -r -p "Your business name (shown as 'Prototype by ...' on every funnel; Enter to skip): " NAME || NAME=""
   if [ -n "${NAME:-}" ]; then
-    python3 - "$HERE/studio.json" "$NAME" <<'PY'
-import json, sys
-p, name = sys.argv[1], sys.argv[2]
-s = json.load(open(p)); s["name"] = name; json.dump(s, open(p, "w"), indent=2); open(p, "a").write("\n")
-PY
+    python3 -c 'import json,sys;p,n=sys.argv[1:];s=json.load(open(p));s["name"]=n;open(p,"w").write(json.dumps(s,indent=2)+"\n")' "$HERE/studio.json" "$NAME"
   fi
 fi
-echo "Installed. In Claude Code say: build a funnel for @clinichandle   (or /clinic-funnel)"
-echo "Needs: the Apify connector in Claude (for Instagram), and Google Chrome (for the screen check)."
+
+echo ""
+echo "Installed. Open Claude Code in any folder and say:"
+echo "    build a funnel for @clinichandle"
+echo "Claude will ask whether to use photos the clinic sends you or pull them from its Instagram."

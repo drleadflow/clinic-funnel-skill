@@ -117,7 +117,7 @@ def package(client_dir, dest_root):
         (stage / "START HERE.html").write_text(editor)
         rows = [f"{s['name']}: {cap} ({src})" for s in cfg["services"] for _, cap, src, *_ in s["imgs"]]
         (stage / "Photo sources.txt").write_text(
-            "Every before/after in your funnel is from your public Instagram. Please confirm you're happy for each to be used.\n\n"
+            "Every before/after in your funnel and where it came from (your Instagram or photos you sent). Please confirm you're happy for each to be used.\n\n"
             + "\n".join(rows) + f"\n\nProvider photo: {cfg['provider']['photo_source']}\n")
         editable = True
     else:

@@ -108,12 +108,11 @@ def readme(entry, mode, page, artifact):
         lines += ["## Change it", "",
                   "Everything on the page comes from `funnel.json` (services, photos, provider, hours, questions, reviews, colours).",
                   "Photos live in `assets/`. After editing:", "", "```bash",
-                  "pip install pillow            # once",
-                  "python3 funnel-kit/build.py .",
+                  "python3 funnel-kit/build.py .     # needs only Python 3; 'pip install pillow' is optional",
                   "```", "",
                   "Optional screen check (needs `pip install playwright` and Google Chrome): `python3 funnel-kit/check.py . --out .check`", "",
                   "## Photos", "",
-                  "Every before/after shown is from your public Instagram; `funnel/sources.md` lists each one with its post link.",
+                  "`funnel/sources.md` lists every before/after and where it came from (your Instagram post or the photos you sent).",
                   "Please confirm you are happy for each to be used in a funnel.", ""]
     else:
         lines += ["## Change it", "",

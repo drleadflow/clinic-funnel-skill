@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""Instagram asset helper for a client funnel folder.
+"""Photo helper for a client funnel folder: the clinic's own photos, or its public Instagram.
 
-    python3 funnel-kit/assets.py download <client_dir> <dataset_id>   # Apify posts dataset -> assets/raw/
-    python3 funnel-kit/assets.py find     <client_dir> [regex]         # list image posts whose caption matches
-    python3 funnel-kit/assets.py sheet    <client_dir> <idx> [idx...]  # contact sheet of those posts, to look at
-    python3 funnel-kit/assets.py pick     <client_dir> <service> <raw file>  # copy into assets/picks/<service>/
-    python3 funnel-kit/assets.py catalog  <client_dir>                 # write assets/catalog.csv
+Route A, the clinic sends its own before/afters:
+    python3 assets.py inbox    <client_dir> <service> [service...]   # make photos/<service>/ folders to drop photos into
+    python3 assets.py import   <client_dir>                          # bring every photo in photos/ into the funnel
+
+Route B, pull from the clinic's public Instagram (needs the Apify connector in Claude):
+    python3 assets.py download <client_dir> <dataset_id>   # Apify posts dataset -> assets/raw/
+    python3 assets.py find     <client_dir> [regex]         # list image posts whose caption matches
+    python3 assets.py sheet    <client_dir> <idx> [idx...]  # contact sheet of those posts, to look at
+    python3 assets.py pick     <client_dir> <service> <raw file>  # copy into assets/picks/<service>/
+    python3 assets.py catalog  <client_dir>                 # write assets/catalog.csv
 
 Raw files are named <post index>_<shortCode>_<child|v>.jpg. assets/raw/ must stay out of git.
+Pillow is optional everywhere: without it photos are shrunk with macOS 'sips', or copied as-is.
 """
 import concurrent.futures as cf
 import csv
@@ -17,7 +23,13 @@ import re
 import sys
 import urllib.request
 
-from PIL import Image, ImageDraw
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import build  # noqa: E402  (shared photo shrinking; Pillow optional)
+
+try:
+    from PIL import Image, ImageDraw
+except ImportError:
+    Image = ImageDraw = None
 
 APIFY_ITEMS = "https://api.apify.com/v2/datasets/{}/items?format=json&clean=1"
 UA = {"User-Agent": "Mozilla/5.0"}
@@ -90,6 +102,10 @@ def sheet(client, idxs, w=260, cols=6):
     files = [f for i in idxs for f in sorted(raw.glob(f"{int(i):03d}_*.jpg"))]
     if not files:
         sys.exit("no raw files for those indexes")
+    if Image is None:
+        print("No Pillow, so no contact sheet. Look at each of these with the Read tool:")
+        print("\n".join(str(f) for f in files))
+        return
     rows = (len(files) + cols - 1) // cols
     im = Image.new("RGB", (cols * w, rows * (w + 18)), "white")
     dr = ImageDraw.Draw(im)
@@ -112,12 +128,71 @@ def pick(client, service, raw_name):
         sys.exit(f"no such raw file: {raw_name}")
     dest = c / "assets" / "picks" / service / raw_name
     dest.parent.mkdir(parents=True, exist_ok=True)
-    im = Image.open(src).convert("RGB")
-    im.thumbnail(PICK_BOX)
-    im.save(dest, quality=80, optimize=True)
+    dest.write_bytes(build.shrink(src, PICK_BOX)[0])
     posts = json.loads(pj.read_text())
     url = posts[int(raw_name[:3])]["url"]
     print(json.dumps([f"picks/{service}/{raw_name}", "<caption from the post>", url]))
+
+
+PHOTO_EXT = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
+INBOX_NOTE = """Put this clinic's own before/after photos here, one folder per treatment (e.g. lip-filler/, botox/).
+
+- Real patients only, photos the clinic already has permission to use. No edited or AI-made results.
+- One file per before/after: a side-by-side image, or a single photo that shows the result.
+- JPG, PNG or iPhone HEIC are all fine.
+- Optional: a captions.txt in each folder, one line per photo:  filename | what was treated
+When done, tell Claude: "photos are in" (it runs: assets.py import <client folder>).
+"""
+
+
+def inbox(client, *services):
+    c = pathlib.Path(client).resolve()
+    root = c / "photos"
+    for s in services:
+        (root / re.sub(r"[^a-z0-9-]+", "-", s.lower()).strip("-")).mkdir(parents=True, exist_ok=True)
+    (root / "READ ME.txt").write_text(INBOX_NOTE)
+    print(f"Drop photos into: {root}")
+    for d in sorted(x for x in root.iterdir() if x.is_dir()):
+        print(f"  {d.name}/")
+
+
+def captions_for(folder):
+    f = folder / "captions.txt"
+    out = {}
+    if f.exists():
+        for line in f.read_text().splitlines():
+            if "|" in line:
+                name, cap = line.split("|", 1)
+                out[name.strip()] = cap.strip()
+    return out
+
+
+def import_photos(client):
+    """Every photo in photos/<service>/ -> assets/picks/<service>/, printed as funnel.json image rows."""
+    c = pathlib.Path(client).resolve()
+    root = c / "photos"
+    if not root.is_dir():
+        sys.exit(f"no photos/ folder in {c}. Run: assets.py inbox {client} <service> ...")
+    rows, n = {}, 0
+    for folder in sorted(x for x in root.iterdir() if x.is_dir()):
+        caps = captions_for(folder)
+        for src in sorted(folder.iterdir()):
+            if src.suffix.lower() not in PHOTO_EXT:
+                continue
+            dest = c / "assets" / "picks" / folder.name / (src.stem + ".jpg")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            data, mime = build.shrink(src, PICK_BOX)
+            if mime != "image/jpeg":
+                dest = dest.with_suffix(src.suffix.lower())
+            dest.write_bytes(data)
+            rel = dest.relative_to(c / "assets").as_posix()
+            rows.setdefault(folder.name, []).append(
+                [rel, caps.get(src.name, "<what was treated: ask the clinic>"), f"provided by the clinic ({folder.name}/{src.name})"])
+            n += 1
+    if not n:
+        sys.exit("photos/ has no photos yet (JPG, PNG or HEIC inside a treatment folder)")
+    print(f"imported {n} photos. Paste each list into that service's \"imgs\" in funnel.json:")
+    print(json.dumps(rows, indent=2))
 
 
 def catalog(client):
@@ -147,11 +222,15 @@ def catalog(client):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    cmds = {"download": (download, 3), "find": (find, 2), "sheet": (sheet, 3), "pick": (pick, 4), "catalog": (catalog, 2)}
+    cmds = {"download": (download, 3), "find": (find, 2), "sheet": (sheet, 3), "pick": (pick, 4), "catalog": (catalog, 2),
+            "inbox": (inbox, 3), "import": (import_photos, 2)}
     if not a or a[0] not in cmds or len(a) < cmds[a[0]][1]:
         sys.exit(__doc__)
     fn = cmds[a[0]][0]
-    if a[0] == "sheet":
-        fn(a[1], a[2:])
-    else:
-        fn(*a[1:])
+    try:
+        if a[0] == "sheet":
+            fn(a[1], a[2:])
+        else:
+            fn(*a[1:])
+    except build.ConfigError as err:
+        sys.exit(str(err))

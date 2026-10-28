@@ -4,30 +4,57 @@ Point Claude at a clinic's Instagram and get a branded, phone-first funnel proto
 
 It is a **prototype builder**: the page makes no network calls, sends no form data and books nothing. Use it to win the client and agree the funnel, then build the live version in your CRM.
 
-## Install
+## Install (2 minutes)
 
-```bash
-git clone https://github.com/drleadflow/clinic-funnel-skill.git
-cd clinic-funnel-skill && ./install.sh
+**Easiest:** open Claude Code and paste:
+
+```
+Install the clinic-funnel skill: clone https://github.com/drleadflow/clinic-funnel-skill into ~/.claude/skills/clinic-funnel
 ```
 
-The installer links the skill into `~/.claude/skills/clinic-funnel`, installs Pillow and Playwright for Python, and asks for your studio name (shown as "Prototype by …" on every funnel; stored in `studio.json`).
-
-You also need:
-- **Claude Code**
-- **The Apify connector** in Claude, to pull the clinic's Instagram (`apify/instagram-scraper`). Without it, drop the clinic's images into `assets/raw/` yourself.
-- **Google Chrome**, for the one-pass screen check (`check.py`)
-
-Then in Claude Code: `build a funnel for @clinichandle` or `/clinic-funnel`.
-
-## Try it in 30 seconds
+**Or in a terminal (Mac/Linux):**
 
 ```bash
+git clone https://github.com/drleadflow/clinic-funnel-skill.git ~/clinic-funnel-skill
+~/clinic-funnel-skill/install.sh
+```
+
+**Windows:** download the ZIP from GitHub (green Code button → Download ZIP), unzip it, and put the folder at `C:\Users\<you>\.claude\skills\clinic-funnel`.
+
+### What you need
+- **Claude Code**
+- **Python 3**: already on most Macs. If Claude says it's missing: Mac `xcode-select --install`, or python.org.
+
+That's it. Nothing to `pip install`. Optional extras, only if you want them:
+- `python3 -m pip install pillow`: smaller pages on Windows/Linux (Macs shrink photos without it)
+- `python3 -m pip install playwright` + Google Chrome: an automatic screenshot check of every screen
+- **Apify connector** in Claude (Settings → Connectors): only for photo route B below
+
+## Use it
+
+Open Claude Code in any folder and say **"build a funnel for @clinichandle"** (or `/clinic-funnel`). Claude asks you one question first, where the before/after photos come from:
+
+| | A. You send the photos | B. Pull from the clinic's Instagram |
+|---|---|---|
+| How | Claude makes a `photos/` folder with one sub-folder per treatment (`lip-filler/`, `botox/`…). You drop the clinic's before/afters in and say "photos are in". | Claude uses the Apify connector to read the clinic's ~200 most recent **public** posts, downloads the images to your computer, finds the before/after posts by their captions and shows you a contact sheet. You approve each photo. |
+| Captions | Optional `captions.txt` per folder: `photo.jpg \| 1 syringe, upper lip`. Claude asks for any that are missing. | Written from each post's own caption. |
+| Source recorded | "provided by the clinic" | the post's link |
+| Needs | nothing | the Apify connector (free credit covers it) |
+| Best when | the clinic has photos that aren't on social, or you want full control | the clinic posts results regularly |
+
+Nothing is ever posted, liked or sent anywhere. Either way the funnel uses only real, unedited patient photos, and the clinic should OK their use before it goes live.
+
+Then Claude reads the clinic's website for services, provider, hours and brand colours, writes `funnel.json`, builds one self-contained HTML page, and gives you a link or a file to open on your phone.
+
+## Try the example first
+
+```bash
+cd ~/.claude/skills/clinic-funnel
 python3 build.py examples/acme-funnel
 open examples/acme-funnel/funnel/funnel.html     # Windows: start, Linux: xdg-open
 ```
 
-The example uses grey sample photos. Real funnels use only real before/afters the clinic has already posted publicly.
+The example uses grey sample photos. Real funnels use only real before/afters.
 
 | File | What it does |
 |---|---|
@@ -35,29 +62,34 @@ The example uses grey sample photos. Real funnels use only real before/afters th
 | `template.html` | The page. Soft rounded cards, layered brand-tinted shadows, 16px+ readable type. Don't edit per client. |
 | `build.py` | `funnel.json` + photos → one self-contained HTML page and `funnel/sources.md`. Validates first. |
 | `check.py` | Clicks through every screen at 375px, saves screenshots and a contact sheet, reports script errors and overflow. |
-| `assets.py` | Instagram helper: `download`, `find`, `sheet`, `pick`, `catalog`. |
+| `assets.py` | Photo helper. Route A: `inbox`, `import`. Route B: `download`, `find`, `sheet`, `pick`, `catalog`. |
 | `package.py` | No-install package for the clinic: a START HERE page with a live 6-step editor. |
 | `export.py` | The clinic's own editable repo. |
 | `studio.json` | Your studio name and any words that must never ship to a client. |
 | `clients.json` | Your clients, so exports can block one client's name leaking into another's files. |
 
 ## Rules it enforces
-- Only real photos the clinic posted publicly, each with its source post. No AI-generated or edited results.
+- Only real photos, sent by the clinic or posted publicly by it, each with its source. No AI-generated or edited results.
 - A service gets a front-page tile only if it has a real photo.
 - No invented reviews, stats or prices (a `$` blocks the build until you confirm prices with the clinic).
 - One client per folder; build and export stop if another client's name or photos show up.
 - You are responsible for getting the clinic's OK to use their patient photos in a funnel. `sources.md` lists every photo with its source so they can approve each one.
 
-## Quick start (by hand)
+## Quick start (by hand, without Claude)
 ```bash
 KIT=~/.claude/skills/clinic-funnel
-python3 $KIT/assets.py download campaigns/acme-funnel-1101 <apify posts datasetId>
+# Route A: the clinic's own photos
+python3 $KIT/assets.py inbox  campaigns/acme-funnel-1101 lip-filler botox
+#   ...drop photos into campaigns/acme-funnel-1101/photos/<treatment>/
+python3 $KIT/assets.py import campaigns/acme-funnel-1101          # prints the "imgs" rows for funnel.json
+# Route B: public Instagram (Apify posts dataset id)
+python3 $KIT/assets.py download campaigns/acme-funnel-1101 <datasetId>
 python3 $KIT/assets.py find  campaigns/acme-funnel-1101
 python3 $KIT/assets.py sheet campaigns/acme-funnel-1101 12 17 21
 python3 $KIT/assets.py pick  campaigns/acme-funnel-1101 lips 017_DdG1uo9m8Vb_1.jpg
-# write campaigns/acme-funnel-1101/funnel.json from the schema below
+# then write campaigns/acme-funnel-1101/funnel.json from the schema below and build
 python3 $KIT/build.py campaigns/acme-funnel-1101
-python3 $KIT/check.py campaigns/acme-funnel-1101 --out campaigns/acme-funnel-1101/.check
+python3 $KIT/check.py campaigns/acme-funnel-1101 --out campaigns/acme-funnel-1101/.check   # optional
 ```
 
 ## funnel.json

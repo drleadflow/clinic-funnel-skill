@@ -299,7 +299,7 @@ h2{font:600 22px/1.2 var(--sans);letter-spacing:-.01em;margin:0}
     </div>
   </section>
 
-  <div class="foot"><b>Acme</b>Prototype by Your Studio for Acme Aesthetics. Demo calendar, nothing is booked. Results shown are real Acme patients from their public Instagram; individual results vary.</div>
+  <div class="foot"><b>Acme</b>Prototype by Your Studio for Acme Aesthetics. Demo calendar, nothing is booked. Results shown are real Acme patients; individual results vary.</div>
 </div>
 
 <script>
@@ -382,7 +382,7 @@ function carousel(imgs){
     ${multi?`<button type="button" class="nav prev" aria-label="Previous result" disabled>‹</button><button type="button" class="nav next" aria-label="Next result">›</button>`:""}</div>
     <p class="cap">${esc(imgs[0][1])}</p>
     ${multi?`<div class="dots">${imgs.map((_,i)=>`<i class="${i?"":"on"}"></i>`).join("")}</div>`:""}
-    <p class="note">Real ${esc(CFG.clinic.short)} patients, from their Instagram. Results vary.</p>`;
+    <p class="note">Real ${esc(CFG.clinic.short)} patients. Results vary.</p>`;
   if(multi){
     const strip = w.querySelector(".strip"), prev = w.querySelector(".prev"), next = w.querySelector(".next"), cap = w.querySelector(".cap"), dots = [...w.querySelectorAll(".dots i")];
     const idx = () => Math.round(strip.scrollLeft / strip.clientWidth);

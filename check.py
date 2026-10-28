@@ -12,8 +12,13 @@ import pathlib
 import sys
 import tempfile
 
-from PIL import Image
-from playwright.sync_api import sync_playwright
+try:
+    from PIL import Image
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    print("Screen check skipped: it is optional and needs 'python3 -m pip install pillow playwright' plus Google Chrome.")
+    print("Open the built funnel in your browser instead and tap through it at phone width.")
+    sys.exit(0)
 
 WIDTH, HEIGHT = 375, 812
 SHEET_H = 1500

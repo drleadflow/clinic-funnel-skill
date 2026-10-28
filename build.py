@@ -14,9 +14,15 @@ import io
 import json
 import pathlib
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 
-from PIL import Image
+try:  # optional: smaller pages. Without it, macOS 'sips' shrinks photos; elsewhere photos go in as-is.
+    from PIL import Image
+except ImportError:
+    Image = None
 
 KIT = pathlib.Path(__file__).resolve().parent
 TEMPLATE = KIT / "template.html"
@@ -117,12 +123,37 @@ def fonts_url(text_font, mark_font, mark_weight):
 
 
 # ---------- images ----------
+WEB_TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif"}
+BIG_PHOTO = 1_500_000
+
+
+def shrink(path, box):
+    """Photo -> (bytes, mime), fitted inside box. Pillow if installed, else macOS sips, else the file as-is."""
+    path = pathlib.Path(path)
+    if Image is not None:
+        im = Image.open(path).convert("RGB")
+        im.thumbnail(box)
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=JPEG_Q, optimize=True)
+        return buf.getvalue(), "image/jpeg"
+    if shutil.which("sips"):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = pathlib.Path(tmp) / "photo.jpg"
+            subprocess.run(["sips", "-Z", str(max(box)), "-s", "format", "jpeg", "-s", "formatOptions", str(JPEG_Q),
+                            str(path), "--out", str(out)], check=True, capture_output=True)
+            return out.read_bytes(), "image/jpeg"
+    mime = WEB_TYPES.get(path.suffix.lower())
+    if not mime:
+        raise ConfigError(f"{path.name}: save it as JPG or PNG first (or run: python3 -m pip install pillow)")
+    data = path.read_bytes()
+    if len(data) > BIG_PHOTO:
+        print(f"note: {path.name} is {len(data) / 1e6:.1f} MB; 'python3 -m pip install pillow' makes pages much smaller", file=sys.stderr)
+    return data, mime
+
+
 def data_uri(path, box):
-    im = Image.open(path).convert("RGB")
-    im.thumbnail(box)
-    buf = io.BytesIO()
-    im.save(buf, "JPEG", quality=JPEG_Q, optimize=True)
-    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+    data, mime = shrink(path, box)
+    return f"data:{mime};base64," + base64.b64encode(data).decode()
 
 
 # ---------- validation ----------
@@ -172,6 +203,8 @@ def validate(cfg, assets):
         for img in s.get("imgs", []):
             if len(img) < 3 or not all(img[:3]):
                 p.append(f"services[{sid}]: each image is [file, caption, source_url]")
+            elif "<" in img[1] or ">" in img[1]:
+                p.append(f"services[{sid}]: write a real caption for {img[0]} (it still says {img[1]})")
             elif not (assets / img[0]).is_file():
                 p.append(f"services[{sid}]: missing file assets/{img[0]}")
     for o in cfg.get("others", []):
