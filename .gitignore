@@ -1,0 +1,5 @@
+__pycache__/
+.check/
+**/assets/raw/
+campaigns/
+.DS_Store

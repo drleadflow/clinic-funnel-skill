@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__CLINIC__ funnel: start here</title>
+<style>
+:root{--bg:#F4F1EC;--panel:#FFFFFF;--soft:#ECE7E0;--ink:#1F1A17;--ink2:#5A4F47;--line:#DDD5CB;--go:#1F1A17;--on-go:#FFFFFF;--warn:#8A4B12;--warn-bg:#FCEFD9;--ok:#2B6B3F;--ok-bg:#E3F2E7;--r:16px;
+  --font:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font)}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:minmax(360px,460px) 1fr;min-height:100vh}
+@media (max-width:860px){.app{grid-template-columns:1fr}.stage{position:static!important;height:auto!important;padding:24px 16px}}
+.panel{background:var(--panel);padding:28px 28px 120px;border-right:1px solid var(--line)}
+.brand{font-weight:700;font-size:15px;color:var(--ink2);margin:0 0 4px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px}
+h2{font-size:21px;margin:0 0 6px}
+h3{font-size:17px;margin:18px 0 8px}
+p{margin:0 0 12px}
+.muted{color:var(--ink2)}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0 24px}
+.steps button{border:0;border-radius:999px;background:var(--soft);padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.steps button[aria-current="step"]{background:var(--go);color:var(--on-go)}
+.tip{background:var(--soft);border-radius:var(--r);padding:14px 16px;margin:0 0 18px}
+.tip b{display:block;margin-bottom:2px}
+label{display:block;font-weight:600;font-size:15px;margin:14px 0 6px}
+label small{font-weight:400;color:var(--ink2)}
+input[type=text],input:not([type]),textarea,select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;background:#fff}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--go)}
+.row{display:flex;gap:10px;align-items:center}
+.row > *{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:var(--go);color:var(--on-go);padding:13px 22px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn.small{padding:7px 13px;font-size:14px;font-weight:600}
+.btn:active{transform:scale(.98)}
+.card{border:1.5px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0;background:#fff}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-h b{font-size:17px}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:10px}
+.ph{border-radius:12px;background:var(--soft);padding:6px}
+.ph img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block}
+.ph input{margin-top:6px;padding:6px 8px;font-size:13px;border-radius:8px}
+.ph .tools{display:flex;gap:4px;margin-top:6px}
+.ph .tools button{flex:1;border:0;border-radius:8px;background:#fff;padding:5px 0;cursor:pointer;font-size:13px}
+.add{display:flex;align-items:center;justify-content:center;min-height:150px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;color:var(--ink2);font-weight:600;text-align:center;padding:8px}
+.add input{display:none}
+.hours td{padding:4px 6px}
+.hours select{padding:6px 8px}
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.color{display:flex;gap:10px;align-items:center;background:var(--soft);border-radius:12px;padding:10px}
+.color input[type=color]{width:44px;height:44px;border:0;padding:0;background:none;cursor:pointer}
+.color span{font-size:14px;line-height:1.3}
+.color span b{display:block;font-size:15px}
+.check{border-radius:12px;padding:10px 14px;margin:8px 0;font-size:15px}
+.check.ok{background:var(--ok-bg);color:var(--ok)}
+.check.warn{background:var(--warn-bg);color:var(--warn)}
+.navbar{position:fixed;left:0;bottom:0;width:min(460px,100%);display:flex;justify-content:space-between;gap:10px;padding:16px 28px;background:rgba(255,255,255,.94);border-top:1px solid var(--line)}
+@media (max-width:860px){.navbar{width:100%}}
+.stage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px}
+.phone{width:390px;height:min(820px,calc(100vh - 110px));border-radius:44px;background:#111;padding:12px;box-shadow:0 30px 70px rgba(0,0,0,.25)}
+.phone iframe{width:100%;height:100%;border:0;border-radius:34px;background:#fff}
+.stage .muted{font-size:14px;text-align:center;max-width:390px}
+.saved{font-size:13px;color:var(--ink2)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="panel">
+    <p class="brand">Your funnel, by __BUILDER__</p>
+    <h1 id="title"></h1>
+    <p class="muted">Follow the steps. Everything you change shows up on the phone right away. Your changes save automatically on this computer.</p>
+    <nav class="steps" id="steps" aria-label="Steps"></nav>
+
+    <section data-step="0">
+      <h2>See your funnel</h2>
+      <div class="tip"><b>Try it like a patient would.</b>Tap a treatment on the phone, answer the questions, and get to the booking calendar. Nothing is sent or booked: it's a demo.</div>
+      <p>When you're ready to change something, press <b>Next</b> at the bottom. You can come back to any step at any time using the buttons above.</p>
+      <h3>What you can change here</h3>
+      <p class="muted">Your clinic and provider details, opening hours, colours and fonts, your treatments and their photos, and your reviews. Then you download the finished page.</p>
+    </section>
+
+    <section data-step="1" hidden>
+      <h2>Your details</h2>
+      <div class="tip"><b>Type over anything.</b>The phone updates as you type.</div>
+      <label for="c-name">Clinic name</label><input id="c-name" data-bind="clinic.name">
+      <label for="c-short">Short name <small>(used in sentences, e.g. "real Acme results")</small></label><input id="c-short" data-bind="clinic.short">
+      <label for="c-addr">Address <small>(shown on the confirmation screen)</small></label><input id="c-addr" data-bind="clinic.address">
+      <label for="c-head">Big question on the first screen</label><input id="c-head" data-bind="copy.headline">
+      <label for="c-sub">Line under it</label><input id="c-sub" data-bind="copy.subhead">
+      <h3>Who takes the call</h3>
+      <div class="row" style="align-items:flex-start">
+        <div><label for="p-name">Full name</label><input id="p-name" data-bind="provider.name"></div>
+        <div><label for="p-short">First name</label><input id="p-short" data-bind="provider.short"></div>
+      </div>
+      <label for="p-cred">Credentials <small>(e.g. NP-C, PA-C)</small></label><input id="p-cred" data-bind="provider.credentials">
+      <label for="p-role">Their role, in a sentence</label><input id="p-role" data-bind="provider.role">
+      <label>Photo</label>
+      <div class="row"><img id="p-photo" alt="Provider photo" style="flex:0 0 72px;width:72px;height:72px;border-radius:50%;object-fit:cover"><label class="btn ghost small" style="flex:0 0 auto;margin:0">Replace photo<input type="file" accept="image/*" id="p-file" hidden></label></div>
+      <label for="consult">What the free call is called</label><input id="consult" data-bind="consult.label">
+      <h3>Opening hours <small class="muted">(the demo calendar only offers times inside these)</small></h3>
+      <table class="hours" id="hours"></table>
+    </section>
+
+    <section data-step="2" hidden>
+      <h2>Colours and fonts</h2>
+      <div class="tip"><b>Pick four colours.</b>The page works out the softer shades by itself. If text gets hard to read, step 6 will tell you.</div>
+      <div class="colors" id="colors"></div>
+      <label for="f-text">Text font</label><select id="f-text" data-bind="theme.text_font"></select>
+      <label for="f-mark">Logo-style name font <small>(the clinic name at the top)</small></label><select id="f-mark" data-bind="wordmark.font"></select>
+      <label for="f-marktext">Name at the top</label><input id="f-marktext" data-bind="wordmark.text">
+    </section>
+
+    <section data-step="3" hidden>
+      <h2>Treatments and photos</h2>
+      <div class="tip"><b>Treatments with photos become the big tiles on the first screen.</b>Use only real photos of your own patients that you have permission to use. Give each photo a short caption, like "Lip filler, half a syringe".</div>
+      <div id="services"></div>
+      <button class="btn ghost small" type="button" id="add-svc">+ Add a treatment</button>
+      <h3>Treatments without photos</h3>
+      <p class="muted">These sit under "Something else" on the first screen, with a short "what to expect" list instead of photos.</p>
+      <div id="others"></div>
+      <button class="btn ghost small" type="button" id="add-oth">+ Add a treatment without photos</button>
+    </section>
+
+    <section data-step="4" hidden>
+      <h2>Reviews</h2>
+      <div class="tip"><b>Only real reviews.</b>Paste them word for word from Google, Instagram or your website, and add where each came from.</div>
+      <div id="reviews"></div>
+      <button class="btn ghost small" type="button" id="add-rev">+ Add a review</button>
+    </section>
+
+    <section data-step="5" hidden>
+      <h2>Before you share</h2>
+      <div id="checks"></div>
+      <h3>Get your finished page</h3>
+      <p><button class="btn" type="button" id="dl-page">Download my funnel</button></p>
+      <p class="muted">This is one file. Send it to __BUILDER__ to put live, or paste it into a "custom code" block in your page builder.</p>
+      <h3>Keep a backup of your changes</h3>
+      <div class="row">
+        <button class="btn ghost small" type="button" id="dl-cfg" style="flex:0 0 auto">Save my settings file</button>
+        <label class="btn ghost small" style="flex:0 0 auto;margin:0">Open a settings file<input type="file" accept=".json,application/json" id="up-cfg" hidden></label>
+      </div>
+      <p class="muted" style="margin-top:10px">Changes already save on this computer. The settings file lets you continue on another computer or send your edits to us.</p>
+      <h3>Start again</h3>
+      <button class="btn ghost small" type="button" id="reset">Undo all my changes</button>
+      <p class="muted" id="reset-confirm" hidden>Press again to confirm. This brings back the original funnel.</p>
+      <h3 id="src-h">Where each photo came from</h3>
+      <div id="sources" class="muted" style="font-size:14px"></div>
+    </section>
+
+    <div class="navbar">
+      <button class="btn ghost" type="button" id="prev">Back</button>
+      <span class="saved" id="saved"></span>
+      <button class="btn" type="button" id="next">Next</button>
+    </div>
+  </main>
+
+  <aside class="stage">
+    <div class="phone"><iframe id="preview" title="Your funnel on a phone"></iframe></div>
+    <p class="muted">This phone is a live preview. Tap through it like a patient.</p>
+  </aside>
+</div>
+
+<script>
+const TEMPLATE = __TEMPLATE__;
+const ORIGINAL = __CONFIG__;
+const STORE_KEY = "funnel-draft:" + ORIGINAL.clinic.name;
+const TEXT_FONTS = ["Jost","Manrope","DM Sans","Figtree","Plus Jakarta Sans","Outfit","Lato","Nunito Sans"];
+const MARK_FONTS = ["Bodoni Moda","Playfair Display","Cormorant Garamond","DM Serif Display","Fraunces","Libre Caslon Text","Jost","Montserrat"];
+const STEP_NAMES = ["1 · See it","2 · Details","3 · Colours","4 · Treatments","5 · Reviews","6 · Finish"];
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const COLOR_ROLES = [["ground","Page background","Behind everything"],["ink","Text","Must be dark on a light background"],["action","Buttons","Main buttons and calendar"],["accent","Accent","Rings on selected answers"]];
+
+/* ---------- state ---------- */
+const clone = o => JSON.parse(JSON.stringify(o));
+const HAD_DRAFT = !!load();
+let cfg = load() || clone(ORIGINAL);
+let step = 0;
+function load(){ try { const s = localStorage.getItem(STORE_KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
+function persist(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(cfg)); $("#saved").textContent = "Saved on this computer"; }
+  catch(e){ $("#saved").textContent = "Couldn't autosave: use 'Save my settings file' in step 6"; }
+}
+const $ = s => document.querySelector(s);
+const get = path => path.split(".").reduce((o,k) => (o||{})[k], cfg);
+const set = (path, v) => { const ks = path.split("."), last = ks.pop(); const o = ks.reduce((o,k) => (o[k] = o[k] || {}), cfg); o[last] = v; };
+cfg.wordmark = cfg.wordmark || {text: cfg.clinic.short, font: cfg.theme.text_font, weight: 600};
+
+/* ---------- render (same rules as build.py) ---------- */
+const hexRgb = h => { h = h.replace("#",""); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+const rgbHex = c => "#" + c.map(v => Math.round(v).toString(16).padStart(2,"0")).join("").toUpperCase();
+const mix = (a,b,t) => { const A = hexRgb(a), B = hexRgb(b); return rgbHex(A.map((x,i) => x + (B[i]-x)*t)); };
+const lum = h => { const [r,g,b] = hexRgb(h).map(v => { v /= 255; return v <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); }); return .2126*r + .7152*g + .0722*b; };
+const contrast = (a,b) => { const [x,y] = [lum(a),lum(b)].sort((p,q) => q-p); return (x+.05)/(y+.05); };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function deriveTheme(t){
+  const g = t.ground, ink = t.ink, act = t.action, acc = t.accent, on = t.on_action || mix(g,"#FFFFFF",.3);
+  return {"ground":g,"surface":mix(g,"#FFFFFF",.62),"white":mix("#FFFFFF",g,.15),"step":mix(g,ink,.045),"step-2":mix(g,ink,.10),
+    "ink":ink,"ink-2":mix(ink,g,.18),"action":act,"action-press":mix(act,"#000000",.45),"on-action":on,
+    "action-2":mix(act,on,.10),"on-action-2":mix(on,act,.18),"on-action-3":mix(on,act,.42),
+    "accent":acc,"wash-1":mix(g,acc,.28),"wash-2":mix(g,acc,.16),"err":"#9A3A26","err-bg":"#F4E1DA"};
+}
+function themeCss(tok, textFont, markFont){
+  const sr = hexRgb(tok.action).join(","), rgb = h => hexRgb(h).join(",");
+  const lines = Object.entries(tok).map(([k,v]) => `  --${k}:${v};`);
+  lines.push(`  --ground-rgb:${rgb(tok.ground)}; --accent-rgb:${rgb(tok.accent)}; --shadow-rgb:${sr};`,
+    `  --sh-1:0 1px 2px rgba(${sr},.06),0 10px 30px rgba(${sr},.12);`,
+    `  --sh-2:0 2px 4px rgba(${sr},.08),0 18px 44px rgba(${sr},.20);`,
+    `  --sh-btn:0 1px 2px rgba(${sr},.10),0 10px 24px rgba(${sr},.26);`,
+    "  --r-tile:22px; --r-card:24px; --r-big:28px; --r-inp:16px;",
+    `  --mark:"${markFont}",Georgia,"Times New Roman",serif;`,
+    `  --sans:"${textFont}","Avenir Next","Helvetica Neue",Arial,sans-serif;`,
+    "  --ease:cubic-bezier(.16,1,.3,1);", "  color-scheme:light;");
+  return ":root{\n" + lines.join("\n") + "\n}\n";
+}
+function fontsUrl(textFont, markFont, w){
+  const fam = f => f.replaceAll(" ","+");
+  const parts = [`family=${fam(textFont)}:wght@400..700`];
+  if(markFont && markFont !== textFont) parts.push(`family=${fam(markFont)}:wght@${w}`);
+  return "https://fonts.googleapis.com/css2?" + parts.join("&") + "&display=swap";
+}
+function render(c){
+  const th = c.theme, pv = c.provider, cl = c.clinic, wm = c.wordmark || {text: cl.short, font: th.text_font, weight: 600};
+  const markFont = wm.font || th.text_font, w = wm.weight || 600;
+  const runtime = {};
+  ["clinic","provider","consult","copy","hours","others","questions","reviews"].forEach(k => { if(c[k] !== undefined) runtime[k] = c[k]; });
+  runtime.services = c.services.filter(s => s.imgs && s.imgs.length).map(s => ({...s, imgs: s.imgs.map(([src,cap]) => [src,cap])}));
+  const fills = {
+    TITLE: esc(c.title || `${cl.short} Consult Finder`), FONTS_URL: fontsUrl(th.text_font, markFont, w),
+    THEME_CSS: themeCss(deriveTheme(th), th.text_font, markFont),
+    WORDMARK: wm.image ? `<img class="mark" src="${wm.image}" alt="${esc(cl.name)}" style="height:32px;width:auto">` : `<div class="mark" aria-label="${esc(cl.name)}">${esc(wm.text || cl.short)}</div>`,
+    PROVIDER_IMG: pv.photo, BUILDER: esc(c.builder || "__BUILDER__"), CLINIC: esc(cl.name), CLINIC_SHORT: esc(cl.short), ADDRESS_SEP: cl.address ? esc(", " + cl.address) : "",
+    CONSULT: esc(c.consult.label), HEADLINE: esc(c.copy.headline), SUBHEAD: esc(c.copy.subhead),
+    P_NAME: esc(pv.name), P_SHORT: esc(pv.short), P_ROLE: esc(pv.role),
+    P_NAME_CRED: esc(pv.credentials ? `${pv.name}, ${pv.credentials}` : pv.name),
+    P_ROLE_LONG: esc(pv.role_long || pv.role), P_ROLE_SHORT: esc(pv.role_short || pv.role),
+    PHONE_PLACEHOLDER: esc(c.phone_placeholder || "305 555 0123"),
+    CFG: JSON.stringify(runtime).replaceAll("</", "<\\/"),
+  };
+  let out = TEMPLATE;
+  for(const [k,v] of Object.entries(fills)) out = out.split("{{" + k + "}}").join(v);
+  return out.replace(/<!--[\s\S]*?-->/g, "");
+}
+
+/* ---------- preview ---------- */
+const SKELETON = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>';
+let timer;
+function refresh(now){
+  clearTimeout(timer);
+  timer = setTimeout(() => { $("#preview").srcdoc = SKELETON + render(cfg) + "</body></html>"; }, now ? 0 : 450);
+  persist();
+}
+
+/* ---------- photos ---------- */
+function readPhoto(file, box){
+  return new Promise((ok, fail) => {
+    const r = new FileReader();
+    r.onerror = () => fail(new Error("Couldn't read that file"));
+    r.onload = () => { const im = new Image(); im.onerror = () => fail(new Error("That file isn't a photo we can use")); im.onload = () => {
+      const k = Math.min(1, box[0]/im.width, box[1]/im.height), cv = document.createElement("canvas");
+      cv.width = Math.round(im.width*k); cv.height = Math.round(im.height*k);
+      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL("image/jpeg", .8)); }; im.src = r.result; };
+    r.readAsDataURL(file);
+  });
+}
+
+/* ---------- step 2: details ---------- */
+function bindInputs(){
+  document.querySelectorAll("[data-bind]").forEach(el => {
+    el.value = get(el.dataset.bind) ?? "";
+    el.oninput = () => { set(el.dataset.bind, el.value); refresh(); if(el.dataset.bind === "clinic.name") $("#title").textContent = `${el.value} funnel`; };
+  });
+  $("#p-photo").src = cfg.provider.photo;
+  $("#p-file").onchange = async e => { const f = e.target.files[0]; if(!f) return;
+    try { cfg.provider.photo = await readPhoto(f, [600,750]); $("#p-photo").src = cfg.provider.photo; refresh(true); } catch(err){ alertBox(err.message); } };
+}
+function drawHours(){
+  const opts = h => Array.from({length:25}, (_,i) => `<option value="${i}" ${i===h?"selected":""}>${i===0?"12 am":i<12?i+" am":i===12?"12 pm":i===24?"12 am (midnight)":(i-12)+" pm"}</option>`).join("");
+  $("#hours").innerHTML = DAYS.map((d,i) => { const h = cfg.hours[i]; return `<tr><td><label style="margin:0;font-weight:500"><input type="checkbox" data-day="${i}" ${h?"checked":""}> ${d}</label></td>
+    <td>${h?`<select data-day="${i}" data-k="0">${opts(h[0])}</select>`:""}</td><td>${h?"to":"closed"}</td><td>${h?`<select data-day="${i}" data-k="1">${opts(h[1])}</select>`:""}</td></tr>`; }).join("");
+  $("#hours").querySelectorAll("input").forEach(cb => cb.onchange = () => { if(cb.checked) cfg.hours[cb.dataset.day] = [10,18]; else delete cfg.hours[cb.dataset.day]; drawHours(); refresh(); });
+  $("#hours").querySelectorAll("select").forEach(sel => sel.onchange = () => { cfg.hours[sel.dataset.day][+sel.dataset.k] = +sel.value; refresh(); });
+}
+
+/* ---------- step 3: colours ---------- */
+function drawColors(){
+  $("#colors").innerHTML = COLOR_ROLES.map(([k,label,help]) => `<label class="color" style="margin:0"><input type="color" data-color="${k}" value="${cfg.theme[k]}"><span><b>${label}</b>${help}</span></label>`).join("");
+  $("#colors").querySelectorAll("input").forEach(el => el.oninput = () => { cfg.theme[el.dataset.color] = el.value.toUpperCase(); if(el.dataset.color === "action") delete cfg.theme.on_action; refresh(); });
+  const fill = (sel, list, cur) => { const all = list.includes(cur) ? list : [cur, ...list]; sel.innerHTML = all.map(f => `<option ${f===cur?"selected":""}>${f}</option>`).join(""); };
+  fill($("#f-text"), TEXT_FONTS, cfg.theme.text_font); fill($("#f-mark"), MARK_FONTS, cfg.wordmark.font);
+}
+
+/* ---------- step 4: treatments ---------- */
+function move(arr, i, d){ const j = i + d; if(j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; }
+function drawServices(){
+  $("#services").innerHTML = cfg.services.map((s,i) => `
+    <div class="card" data-i="${i}">
+      <div class="card-h"><b>${esc(s.name) || "New treatment"}</b>
+        <span><button class="btn ghost small" data-act="up" title="Move up">↑</button> <button class="btn ghost small" data-act="down" title="Move down">↓</button> <button class="btn ghost small" data-act="del">Remove</button></span></div>
+      <label>Name on the tile</label><input data-f="name" value="${esc(s.name)}">
+      <label>Title on the result screen</label><input data-f="plan" value="${esc(s.plan)}">
+      <label>One or two sentences about it</label><textarea data-f="body">${esc(s.body)}</textarea>
+      <label>Photos <small>(the first one is the tile picture)</small></label>
+      <div class="photos">${(s.imgs||[]).map((im,j) => `<div class="ph" data-j="${j}"><img src="${im[0]}" alt=""><input data-cap value="${esc(im[1])}" placeholder="Caption" aria-label="Caption">
+        <div class="tools"><button data-pact="left" title="Move left">←</button><button data-pact="right" title="Move right">→</button><button data-pact="del" title="Remove photo">✕</button></div></div>`).join("")}
+        <label class="add">+ Add photos<input type="file" accept="image/*" multiple data-addphoto></label></div>
+      ${(s.imgs||[]).length ? "" : `<p class="check warn" style="margin-top:10px">No photos yet, so this treatment won't show as a tile. Add a photo, or remove it and add it under "Treatments without photos".</p>`}
+    </div>`).join("");
+  $("#services").querySelectorAll(".card").forEach(card => {
+    const s = cfg.services[+card.dataset.i];
+    card.querySelectorAll("[data-f]").forEach(el => el.oninput = () => { s[el.dataset.f] = el.value; if(el.dataset.f === "name") card.querySelector(".card-h b").textContent = el.value || "New treatment"; refresh(); });
+    card.querySelectorAll("[data-act]").forEach(b => b.onclick = () => { const i = +card.dataset.i;
+      if(b.dataset.act === "del"){ if(b.dataset.armed){ cfg.services.splice(i,1); } else { b.dataset.armed = 1; b.textContent = "Press again to remove"; return; } }
+      else move(cfg.services, i, b.dataset.act === "up" ? -1 : 1);
+      drawServices(); refresh(); });
+    card.querySelectorAll(".ph").forEach(ph => { const j = +ph.dataset.j;
+      ph.querySelector("[data-cap]").oninput = e => { s.imgs[j][1] = e.target.value; refresh(); };
+      ph.querySelectorAll("[data-pact]").forEach(b => b.onclick = () => {
+        if(b.dataset.pact === "del") s.imgs.splice(j,1); else move(s.imgs, j, b.dataset.pact === "left" ? -1 : 1);
+        drawServices(); refresh(); }); });
+    card.querySelector("[data-addphoto]").onchange = async e => {
+      s.imgs = s.imgs || [];
+      for(const f of e.target.files){ try { s.imgs.push([await readPhoto(f, [760,960]), "", "Added by the clinic"]); } catch(err){ alertBox(err.message); } }
+      drawServices(); refresh(true); };
+  });
+}
+function drawOthers(){
+  cfg.others = cfg.others || [];
+  $("#others").innerHTML = cfg.others.map((o,i) => `
+    <div class="card" data-i="${i}">
+      <div class="card-h"><b>${esc(o.name) || "New treatment"}</b><button class="btn ghost small" data-act="del">Remove</button></div>
+      <label>Name</label><input data-f="name" value="${esc(o.name)}">
+      <label>One or two sentences about it</label><textarea data-f="body">${esc(o.body)}</textarea>
+      <label>What to expect <small>(up to 3 lines: a short label and the detail)</small></label>
+      ${[0,1,2].map(k => `<div class="row" style="margin-bottom:6px"><input data-ex="${k}" data-p="0" style="flex:0 0 34%" placeholder="e.g. Sessions" value="${esc((o.expect[k]||[])[0])}"><input data-ex="${k}" data-p="1" placeholder="e.g. A series, a few weeks apart" value="${esc((o.expect[k]||[])[1])}"></div>`).join("")}
+    </div>`).join("");
+  $("#others").querySelectorAll(".card").forEach(card => {
+    const o = cfg.others[+card.dataset.i];
+    card.querySelectorAll("[data-f]").forEach(el => el.oninput = () => { o[el.dataset.f] = el.value; if(el.dataset.f === "name"){ o.plan = `Your ${el.value.toLowerCase()} plan`; card.querySelector(".card-h b").textContent = el.value || "New treatment"; } refresh(); });
+    card.querySelectorAll("[data-ex]").forEach(el => el.oninput = () => {
+      const rows = [0,1,2].map(k => [card.querySelector(`[data-ex="${k}"][data-p="0"]`).value, card.querySelector(`[data-ex="${k}"][data-p="1"]`).value]);
+      o.expect = rows.filter(r => r[0] || r[1]); refresh(); });
+    card.querySelector("[data-act]").onclick = e => { const b = e.target; if(!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Press again to remove"; return; } cfg.others.splice(+card.dataset.i,1); drawOthers(); refresh(); };
+  });
+}
+
+/* ---------- step 5: reviews ---------- */
+function drawReviews(){
+  cfg.reviews = cfg.reviews || [];
+  $("#reviews").innerHTML = cfg.reviews.map((r,i) => `
+    <div class="card" data-i="${i}">
+      <div class="card-h"><b>${esc(r.name) || "New review"}</b><button class="btn ghost small" data-act="del">Remove</button></div>
+      <label>Review, word for word</label><textarea data-f="quote">${esc(r.quote)}</textarea>
+      <div class="row"><div><label>First name</label><input data-f="name" value="${esc(r.name)}"></div><div><label>Where it's from</label><input data-f="source" value="${esc(r.source)}" placeholder="Google, Instagram link…"></div></div>
+    </div>`).join("");
+  $("#reviews").querySelectorAll(".card").forEach(card => {
+    const r = cfg.reviews[+card.dataset.i];
+    card.querySelectorAll("[data-f]").forEach(el => el.oninput = () => { r[el.dataset.f] = el.value; refresh(); });
+    card.querySelector("[data-act]").onclick = e => { const b = e.target; if(!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Press again to remove"; return; } cfg.reviews.splice(+card.dataset.i,1); drawReviews(); refresh(); };
+  });
+}
+
+/* ---------- step 6: checks + save ---------- */
+function checks(){
+  const out = [], t = cfg.theme;
+  const tiles = cfg.services.filter(s => s.imgs && s.imgs.length);
+  if(!tiles.length) out.push(["warn","Add at least one treatment with a photo. Without one, the first screen has no tiles."]);
+  cfg.services.forEach(s => (s.imgs||[]).forEach((im,j) => { if(!im[1].trim()) out.push(["warn",`${s.name || "A treatment"}: photo ${j+1} has no caption.`]); }));
+  cfg.services.filter(s => !(s.imgs||[]).length).forEach(s => out.push(["warn",`${s.name || "A treatment"} has no photos, so it's hidden from the first screen.`]));
+  if(contrast(t.ink, t.ground) < 7) out.push(["warn","Your text colour is too light against the background. Pick a darker text colour or a lighter background."]);
+  const on = t.on_action || mix(t.ground,"#FFFFFF",.3);
+  if(contrast(on, t.action) < 4.5) out.push(["warn","Button text is hard to read on your button colour. Pick a darker button colour."]);
+  if(!Object.keys(cfg.hours).length) out.push(["warn","Open at least one day so the calendar has times."]);
+  (cfg.reviews||[]).forEach(r => { if(!r.quote || !r.name || !r.source) out.push(["warn",`A review is missing its text, name or where it's from.`]); });
+  if(/\$\s?\d/.test(JSON.stringify([cfg.copy, cfg.services.map(s=>[s.name,s.body,s.plan]), cfg.others]))) out.push(["warn","You mentioned a price. Make sure it's correct and current before sharing."]);
+  if(!out.length) out.push(["ok","Everything looks good. You're ready to download."]);
+  $("#checks").innerHTML = out.map(([k,m]) => `<div class="check ${k}">${esc(m)}</div>`).join("");
+  const src = cfg.services.flatMap(s => (s.imgs||[]).map(im => [s.name, im[1], im[2]]));
+  $("#sources").innerHTML = src.map(([n,c,u]) => `<div>${esc(n)}: ${esc(c || "no caption")}, ${/^https?:/.test(u||"") ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>` : esc(u || "")}</div>`).join("");
+}
+function download(name, text, type){
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name;
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+const slug = () => (cfg.clinic.short || "clinic").toLowerCase().replace(/[^a-z0-9]+/g,"-");
+function alertBox(msg){ const d = document.createElement("div"); d.className = "check warn"; d.textContent = msg; document.querySelector(`section[data-step="${step}"]`).prepend(d); setTimeout(() => d.remove(), 6000); }
+
+/* ---------- steps ---------- */
+function show(n){
+  step = Math.max(0, Math.min(5, n));
+  document.querySelectorAll("section[data-step]").forEach(s => s.hidden = +s.dataset.step !== step);
+  document.querySelectorAll("#steps button").forEach((b,i) => i === step ? b.setAttribute("aria-current","step") : b.removeAttribute("aria-current"));
+  $("#prev").style.visibility = step ? "visible" : "hidden";
+  $("#next").textContent = step === 5 ? "Back to start" : "Next";
+  if(step === 5) checks();
+  window.scrollTo({top:0});
+}
+function drawAll(){ $("#title").textContent = `${cfg.clinic.name} funnel`; bindInputs(); drawHours(); drawColors(); drawServices(); drawOthers(); drawReviews(); }
+
+$("#steps").innerHTML = STEP_NAMES.map((n,i) => `<button type="button" data-go="${i}">${n}</button>`).join("");
+$("#steps").onclick = e => { const b = e.target.closest("[data-go]"); if(b) show(+b.dataset.go); };
+$("#prev").onclick = () => show(step - 1);
+$("#next").onclick = () => show(step === 5 ? 0 : step + 1);
+$("#add-svc").onclick = () => { cfg.services.push({id:"svc"+Date.now(), name:"", plan:"Your plan", body:"", imgs:[]}); drawServices(); refresh(); };
+$("#add-oth").onclick = () => { cfg.others = cfg.others || []; cfg.others.push({id:"oth"+Date.now(), name:"", plan:"Your plan", body:"", expect:[]}); drawOthers(); refresh(); };
+$("#add-rev").onclick = () => { cfg.reviews.push({quote:"", name:"", source:""}); drawReviews(); refresh(); };
+$("#dl-page").onclick = () => download(`${slug()}-funnel.html`, render(cfg), "text/html");
+$("#dl-cfg").onclick = () => download(`${slug()}-funnel-settings.json`, JSON.stringify(cfg, null, 2), "application/json");
+$("#up-cfg").onchange = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader();
+  r.onload = () => { try { const c = JSON.parse(r.result); if(!c.clinic || !c.services) throw new Error(); cfg = c; drawAll(); refresh(true); show(0); } catch(err){ alertBox("That file isn't a funnel settings file."); } };
+  r.readAsText(f); };
+$("#reset").onclick = () => { const b = $("#reset"); if(!b.dataset.armed){ b.dataset.armed = 1; $("#reset-confirm").hidden = false; return; }
+  delete b.dataset.armed; $("#reset-confirm").hidden = true; cfg = clone(ORIGINAL); cfg.wordmark = cfg.wordmark || {text: cfg.clinic.short, font: cfg.theme.text_font, weight: 600}; drawAll(); refresh(true); show(0); };
+
+drawAll(); show(0); $("#preview").srcdoc = SKELETON + render(cfg) + "</body></html>"; $("#saved").textContent = HAD_DRAFT ? "Your saved changes are loaded" : "";
+</script>
+</body>
+</html>

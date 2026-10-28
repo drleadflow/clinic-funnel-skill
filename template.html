@@ -1,0 +1,473 @@
+<title>{{TITLE}}</title>
+<!-- Clinic phone funnel. Prototype only: no network calls, no pixel, demo calendar. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="{{FONTS_URL}}">
+<style>
+{{THEME_CSS}}
+*{box-sizing:border-box}
+body{background:var(--action-press);color:var(--ink);font:450 16px/1.55 var(--sans);padding-inline:0;padding-block:0;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:0;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.card{position:relative;max-width:440px;margin:0 auto;min-height:100dvh;background:var(--ground);display:flex;flex-direction:column}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:520px;background:radial-gradient(120% 70% at 20% 0%,var(--wash-1) 0%,rgba(var(--ground-rgb),0) 70%),radial-gradient(90% 60% at 100% 10%,var(--wash-2) 0%,rgba(var(--ground-rgb),0) 65%);pointer-events:none;z-index:0}
+.card > *{position:relative;z-index:1}
+@media (min-width:600px){.card{margin-block:28px;min-height:880px;border-radius:36px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45)}}
+.demo{background:var(--action);color:var(--on-action);font:500 15.5px/1.4 var(--sans);text-align:center;padding:10px 20px;border-radius:0 0 22px 22px;box-shadow:var(--sh-1)}
+.screen{flex:1;display:flex;flex-direction:column;animation:scr .28s var(--ease) both}
+.screen[hidden]{display:none}
+@keyframes scr{from{opacity:.4;transform:translateX(16px)}to{opacity:1;transform:none}}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px 14px}
+.mark{font:600 30px/1 var(--mark);letter-spacing:-.01em}
+.track{flex:0 0 120px;height:6px;background:var(--step-2);border-radius:999px;overflow:hidden}
+.fill{height:100%;background:var(--action);border-radius:999px;width:16%;transition:width .3s var(--ease)}
+
+.body{flex:1;display:flex;flex-direction:column;padding:8px 24px 28px}
+.step{flex:1;display:none;flex-direction:column}
+.step.on{display:flex}
+.step.on > *{animation:rise .3s var(--ease) both}
+.step.on > *:nth-child(2){animation-delay:.04s}.step.on > *:nth-child(3){animation-delay:.08s}.step.on > *:nth-child(4){animation-delay:.12s}.step.on > *:nth-child(5){animation-delay:.16s}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen,.step.on > *,.insight{animation:none!important}*{transition:none!important}}
+
+h1{font:600 30px/1.12 var(--sans);letter-spacing:-.02em;text-wrap:balance;margin:0}
+h2{font:600 22px/1.2 var(--sans);letter-spacing:-.01em;margin:0}
+.help{margin:10px 0 0;font-size:17px;line-height:1.5;color:var(--ink)}
+.sub{margin:8px 0 0;font-size:17px;color:var(--ink)}
+
+/* provider */
+.prov{display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:var(--r-card);padding:12px 18px 12px 12px;box-shadow:var(--sh-1)}
+.prov img{width:64px;height:64px;object-fit:cover;object-position:50% 22%;border-radius:50%;flex:none;display:block;box-shadow:0 0 0 3px var(--white),0 6px 16px rgba(var(--shadow-rgb),.18)}
+.prov p{margin:0;font-size:16px;line-height:1.35}
+.prov b{font-weight:600}
+.prov span{display:block;color:var(--ink-2);font-size:16px}
+.prov.big img{width:88px;height:88px}
+
+/* photo tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.tile{position:relative;aspect-ratio:4/5;border-radius:var(--r-tile);overflow:hidden;background:var(--surface);text-align:left;box-shadow:var(--sh-1);transition:transform .22s var(--ease),box-shadow .22s var(--ease)}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s var(--ease)}
+.tile span{position:absolute;left:0;right:0;bottom:0;padding:40px 14px 14px;background:linear-gradient(rgba(22,15,12,0),rgba(22,15,12,.88));color:var(--white);font:600 17px/1.2 var(--sans)} /* taste-skill-ignore: neutral scrim over photo */
+.tile:hover img{transform:scale(1.04)}
+.tile:active{transform:scale(.98)}
+.tile.sel{transform:translateY(-3px);box-shadow:0 0 0 2px var(--accent),var(--sh-2)}
+.else{margin-top:16px;min-height:56px;width:100%;border-radius:var(--r-tile);background:var(--surface);box-shadow:var(--sh-1);font-weight:600;font-size:17px;text-align:left;padding:0 18px;display:flex;align-items:center;justify-content:space-between}
+.else:active{transform:scale(.98)}
+.else{transition:transform .2s var(--ease)}
+.else-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.else-list[hidden]{display:none}
+
+/* B&A carousel */
+.ba{position:relative;margin-top:20px}
+.ba{border-radius:var(--r-card);box-shadow:var(--sh-1)}
+.strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:var(--r-card);background:var(--surface)}
+.strip::-webkit-scrollbar{display:none}
+.strip figure{flex:0 0 100%;margin:0;scroll-snap-align:start;scroll-snap-stop:always}
+.strip img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cap{margin:10px 0 0;font-size:16px;color:var(--ink)}
+.nav{position:absolute;top:calc(50% - 22px);width:44px;height:44px;border-radius:50%;background:var(--white);color:var(--ink);font-size:22px;line-height:44px;text-align:center;box-shadow:var(--sh-1);transition:transform .2s var(--ease)}
+.nav:active{transform:scale(.94)}
+.nav[disabled]{opacity:0;pointer-events:none}
+.prev{left:10px}.next{right:10px}
+.dots{display:flex;gap:6px;margin-top:10px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--step-2)}
+.dots i.on{background:var(--action)}
+.note{margin:6px 0 0;font-size:16px;color:var(--ink-2)}
+.expect{margin:20px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.expect li{background:var(--surface);border-radius:20px;padding:16px 18px;font-size:16px;box-shadow:var(--sh-1)}
+.expect b{display:block;font-weight:600}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.opt{display:flex;align-items:center;gap:14px;min-height:60px;padding:14px 18px;border-radius:20px;background:var(--surface);box-shadow:var(--sh-1);font:550 17px/1.35 var(--sans);text-align:left;transition:background .2s var(--ease),transform .2s var(--ease),box-shadow .2s var(--ease)}
+.opt .dot{flex:none;width:22px;height:22px;border-radius:50%;background:var(--step);transition:border-width .15s}
+.opt:active{transform:scale(.98)}
+.opt.sel{background:var(--action);color:var(--on-action);box-shadow:0 0 0 2px var(--accent),var(--sh-2);transform:translateY(-1px)}
+.opt.sel .dot{border:6px solid var(--white);background:var(--action)}
+.insight{margin-top:16px;background:var(--step);border-radius:20px;padding:14px 16px;font-size:16px}
+.insight b{font-weight:600}
+.insight[hidden]{display:none}
+
+/* form */
+.fields{display:flex;flex-direction:column;gap:14px;margin-top:20px}
+.fields label{font:600 16px var(--sans);display:flex;flex-direction:column;gap:6px}
+.fields label small{font-weight:450;color:var(--ink-2);font-size:16px}
+.inp{width:100%;min-height:56px;padding:14px 18px;border:2px solid transparent;border-radius:var(--r-inp);background:var(--surface);box-shadow:var(--sh-1);transition:border-color .2s,box-shadow .2s;font:500 17px var(--sans);color:var(--ink);outline:none;-webkit-appearance:none;appearance:none}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.18),var(--sh-1)}
+.inp.bad{border-color:var(--err);background:var(--err-bg)}
+.err{display:none;margin-top:14px;padding:12px 16px;border-radius:999px;background:var(--err-bg);color:var(--err);text-align:center;font-size:16px;font-weight:500}
+.err.show{display:block}
+
+.actions{margin-top:auto;padding-top:24px;display:flex;flex-direction:column;gap:10px}
+.btn{width:100%;min-height:56px;display:flex;align-items:center;justify-content:center;padding:16px;border-radius:999px;background:var(--action);color:var(--on-action);font:600 17px var(--sans);text-decoration:none;box-shadow:var(--sh-btn);transition:transform .2s var(--ease),background .2s,box-shadow .2s}
+.btn:hover{background:var(--action-press)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{background:var(--step-2);color:var(--ink-2);cursor:not-allowed;transform:none;box-shadow:none}
+.back{min-height:48px;width:100%;border-radius:999px;color:var(--ink);font-weight:500;font-size:16px}
+.back:active{background:var(--step)}
+.small{margin:0;text-align:center;font-size:16px;color:var(--ink-2)}
+
+/* analyzing */
+.an{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 24px}
+.an-list{display:flex;flex-direction:column;gap:10px;margin-top:26px}
+.an-item{display:flex;align-items:center;min-height:58px;padding:0 20px;border-radius:20px;background:var(--surface);box-shadow:var(--sh-1);font-size:16px;color:var(--ink-2);transition:background .3s,color .3s}
+.an-item.on{color:var(--ink);box-shadow:0 0 0 2px var(--accent),var(--sh-1)}
+.an-item b{margin-left:auto;opacity:0;transition:opacity .3s}
+.an-item.on b{opacity:1}
+
+/* result */
+.res{padding:12px 24px 0}
+.res h1{font-size:32px}
+.lede{margin:12px 0 0;font-size:17px;line-height:1.55}
+.res .prov{margin-top:22px}
+.plan{margin:22px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.plan li{background:var(--surface);border-radius:18px;padding:13px 18px;box-shadow:var(--sh-1);font-size:16px;display:grid;grid-template-columns:96px 1fr;gap:12px}
+.plan li span{color:var(--ink-2)}
+.res .btn{margin-top:22px}
+.voices{margin-top:44px}
+.quote{margin:14px 0 0;padding:20px 22px;border-radius:var(--r-card);background:var(--surface);box-shadow:var(--sh-1)}
+.quote p{margin:0;font:450 18px/1.45 var(--sans)}
+.quote footer{margin-top:8px;font-size:16px;color:var(--ink-2)}
+.sticky{position:sticky;bottom:0;margin:20px -24px 0;padding:12px 24px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(var(--ground-rgb),.78);-webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2);border-top:1px solid rgba(var(--shadow-rgb),.10);transition:opacity .2s,transform .2s;z-index:3}
+.sticky.off{opacity:0;pointer-events:none;transform:translateY(12px)}
+
+/* calendar */
+.cal{margin:44px 0 0;padding:28px 20px;border-radius:var(--r-big);background:var(--action);color:var(--on-action);box-shadow:var(--sh-2);scroll-margin-top:12px}
+.cal .sub{color:var(--on-action-2)}
+.days{display:flex;gap:8px;overflow-x:auto;margin:20px -20px 0;padding:4px 20px 8px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 64px;min-height:74px;border-radius:20px;transition:transform .2s var(--ease),background .2s;background:var(--action-2);color:var(--on-action);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.day small{font-size:15px;color:var(--on-action-2)}
+.day b{font:600 22px var(--sans);font-variant-numeric:tabular-nums}
+.day[aria-pressed="true"],.slot[aria-pressed="true"]{background:var(--ground);color:var(--ink);box-shadow:0 8px 20px rgba(0,0,0,.28)}
+.day:active,.slot:active{transform:scale(.96)}
+.day[aria-pressed="true"] small{color:var(--ink-2)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.slot{min-height:50px;border-radius:999px;transition:transform .2s var(--ease),background .2s;background:var(--action-2);color:var(--on-action);font:500 16px var(--sans);font-variant-numeric:tabular-nums}
+.callto{margin:16px 0 0;font-size:16px}
+.cal .btn{margin-top:16px;background:var(--ground);color:var(--ink)}
+.cal .btn:disabled{background:var(--action-2);color:var(--on-action-3)}
+
+/* confirmation */
+.ok{flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 24px 28px}
+.ticket{background:var(--action);color:var(--on-action);border-radius:var(--r-big);box-shadow:var(--sh-2);padding:22px;display:flex;flex-direction:column;gap:4px;font-size:17px}
+.ticket strong{font:600 24px/1.2 var(--sans);margin-bottom:6px}
+.ticket .flag{align-self:flex-start;margin-bottom:10px;background:var(--ground);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:16px;font-weight:600}
+.foot{margin:24px 16px 16px;padding:20px 22px;border-radius:var(--r-card);background:var(--step);font-size:16px;line-height:1.5;color:var(--ink-2)}
+.foot b{display:block;font:600 22px/1 var(--mark);color:var(--ink);margin-bottom:8px}
+</style>
+
+<div class="card">
+  <p class="demo" role="note" style="margin:0">Prototype by {{BUILDER}} · demo calendar, nothing is booked</p>
+
+  <section class="screen" id="sc-quiz" aria-label="{{CLINIC}} consult finder">
+    <div class="top">
+      {{WORDMARK}}
+      <div class="track" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="16"><div class="fill" id="fill"></div></div>
+    </div>
+    <div class="body" id="body">
+
+      <div class="step on" data-step="1">
+        <div class="prov">
+          <img src="{{PROVIDER_IMG}}" alt="{{P_NAME}}, {{CLINIC}}">
+          <p>Your {{CONSULT}} is with <b>{{P_NAME}}</b>, {{P_ROLE}}.</p>
+        </div>
+        <h1 style="margin-top:24px">{{HEADLINE}}</h1>
+        <p class="sub">{{SUBHEAD}}</p>
+        <div class="tiles" id="tiles"></div>
+        <div id="elseWrap">
+          <button type="button" class="else" id="elseBtn" aria-expanded="false" aria-controls="elseList">Something else <span aria-hidden="true">+</span></button>
+          <div class="else-list" id="elseList" hidden></div>
+        </div>
+      </div>
+
+      <div class="step" data-step="2">
+        <h1 id="baHead">Is this the result you want?</h1>
+        <p class="help" id="baBody"></p>
+        <div id="baMedia"></div>
+        <div class="actions">
+          <button class="btn" type="button" data-next>Yes, keep going</button>
+          <button class="back" type="button" data-back>Pick something else</button>
+        </div>
+      </div>
+
+      <div id="qsteps" style="display:contents"></div>
+
+      <form class="step" id="form" novalidate>
+        <h1>Where should {{P_SHORT}} call you?</h1>
+        <div class="prov big" style="margin-top:18px">
+          <img src="{{PROVIDER_IMG}}" alt="{{P_NAME}}">
+          <p><b>{{P_NAME_CRED}}</b><span>{{P_ROLE_LONG}}</span></p>
+        </div>
+        <div class="fields">
+          <label for="f-first">First name<input class="inp" id="f-first" autocomplete="given-name" autocapitalize="words" maxlength="60" required></label>
+          <label for="f-phone">Mobile number<input class="inp" id="f-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="{{PHONE_PLACEHOLDER}}" required></label>
+          <label for="f-email"><span>Email <small>(optional)</small></span><input class="inp" id="f-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120"></label>
+        </div>
+        <div class="err" id="err" role="alert"></div>
+        <div class="actions">
+          <button class="btn" type="submit">See my plan</button>
+          <button class="back" type="button" data-back>Back</button>
+          <p class="small">This is a demo. Nothing you type leaves this page.</p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="screen" id="sc-an" hidden aria-live="polite">
+    <div class="an">
+      <h1>Building your {{CLINIC_SHORT}} plan</h1>
+      <p class="sub">Matching your answers to the right treatment and provider.</p>
+      <div class="an-list" id="anList">
+        <div class="an-item">Reading your answers<b>Done</b></div>
+        <div class="an-item">Matching real {{CLINIC_SHORT}} results<b>Done</b></div>
+        <div class="an-item">Checking your timing<b>Done</b></div>
+        <div class="an-item">Writing notes for {{P_SHORT}}<b>Done</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="sc-res" hidden aria-live="polite">
+    <div class="res">
+      <h1 id="rType"></h1>
+      <p class="lede" id="rLede"></p>
+      <div id="rMedia"></div>
+      <div class="prov">
+        <img src="{{PROVIDER_IMG}}" alt="{{P_NAME}}">
+        <p><b>Your next step is a {{CONSULT}} with {{P_SHORT}}</b><span>{{P_ROLE_SHORT}}</span></p>
+      </div>
+      <ul class="plan" id="rPlan"></ul>
+      <a class="btn" id="mainCta" href="#cal">Book my {{CONSULT}}</a>
+
+      <div class="voices" id="voices">
+        <h2>What {{CLINIC_SHORT}} clients say</h2>
+      </div>
+
+      <div class="cal" id="cal">
+        <h2>Pick a time for your call</h2>
+        <p class="sub">A short phone call with {{P_SHORT}}. No cost, no pressure. These times are made up for the demo.</p>
+        <div class="days" id="days"></div>
+        <div class="slots" id="slots"></div>
+        <p class="callto" id="callto"></p>
+        <button class="btn" type="button" id="confirm" disabled>Book my call</button>
+      </div>
+
+      <div class="sticky" id="sticky"><a class="btn" href="#cal">Book my {{CONSULT}}</a></div>
+    </div>
+  </section>
+
+  <section class="screen" id="sc-ok" hidden aria-live="polite">
+    <div class="ok">
+      <h1 id="okHead">You're all set</h1>
+      <div class="ticket" id="ticket"></div>
+      <div class="prov">
+        <img src="{{PROVIDER_IMG}}" alt="{{P_NAME}}">
+        <p><b>{{P_SHORT}} will call you</b><span>{{CLINIC}}{{ADDRESS_SEP}}</span></p>
+      </div>
+      <p class="sub">In the live version {{P_SHORT}} would call you at your time. This is a prototype: nothing was sent and nothing was booked.</p>
+      <div class="actions"><button class="back" type="button" id="restart">Start over</button></div>
+    </div>
+  </section>
+
+  <div class="foot"><b>{{CLINIC_SHORT}}</b>Prototype by {{BUILDER}} for {{CLINIC}}. Demo calendar, nothing is booked. Results shown are real {{CLINIC_SHORT}} patients from their public Instagram; individual results vary.</div>
+</div>
+
+<script>
+const CFG = {{CFG}};
+const P = CFG.provider.short;
+const fill = t => t.replaceAll("{p}", P).replaceAll("{clinic}", CFG.clinic.short);
+const DEFAULT_QUESTIONS = [
+  {key:"change", label:"Goal", head:"How big a change are you after?", why:"This tells {p} where to start.",
+   opts:[
+    ["subtle","A subtle refresh","Most plans start here: small, strategic changes. You can always add more later.","a subtle refresh"],
+    ["noticeable","Noticeable, but natural","{p} may suggest pairing treatments so no single one is overdone.","a noticeable but natural change"],
+    ["big","A real transformation","Bigger changes are usually staged over a few visits, so every step still looks like you.","a real transformation"]]},
+  {key:"timing", label:"Timing", head:"When would you like to start?", why:"Some treatments need a head start before an event.",
+   opts:[
+    ["asap","As soon as possible","{p} can look for the earliest opening with you on the call."],
+    ["month","Within the next month","Plenty of time. The call is where you pick the right first visit."],
+    ["event","Before an event","Bring the date to your call. Some treatments need months of lead time."],
+    ["research","Just researching","No pressure. The call is a good place to ask questions before you decide anything."]]},
+  {key:"history", label:"History", head:"Have you had this before?", why:"Prior treatment can change the plan.",
+   opts:[
+    ["first","No, it would be my first time","First-timers get the full walkthrough, so you know exactly what to expect."],
+    ["elsewhere","Yes, somewhere else","Tell {p} what you had and when, so the plan starts from there."],
+    ["client","Yes, I'm already a {clinic} client","Welcome back. Mention your last visit so your plan builds on it."]]},
+];
+const QUESTIONS = (CFG.questions || DEFAULT_QUESTIONS).map(q => ({...q, head:fill(q.head), why:fill(q.why), opts:q.opts.map(o => o.map(fill))}));
+const TOTAL = 3 + QUESTIONS.length;
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const state = {step:1, svc:null, answers:{}, name:"", phone:"", day:null, slot:null};
+$("#form").dataset.step = TOTAL;
+
+function screen(id){ $$(".screen").forEach(s => s.hidden = s.id !== id); window.scrollTo({top:0}); }
+function go(n){
+  state.step = n;
+  $$("#body .step").forEach(s => s.classList.toggle("on", +s.dataset.step === n));
+  const pct = Math.round(n/TOTAL*100);
+  $("#fill").style.width = pct + "%"; $(".track").setAttribute("aria-valuenow", pct);
+  window.scrollTo({top:0});
+}
+document.addEventListener("click", e => {
+  if(e.target.closest("[data-next]")) go(state.step+1);
+  if(e.target.closest("[data-back]")) go(Math.max(1, state.step-1));
+});
+function choose(s){ state.svc = s; fillStep2(s); go(2); }
+
+/* step 1: photo tiles only; photo-less services under "Something else" */
+CFG.services.forEach(s => {
+  const b = document.createElement("button"); b.type = "button"; b.className = "tile";
+  b.innerHTML = `<img src="${s.imgs[0][0]}" alt=""><span>${esc(s.name)}</span>`;
+  b.onclick = () => { $$(".tile").forEach(t=>t.classList.remove("sel")); b.classList.add("sel"); setTimeout(()=>choose(s), 160); };
+  $("#tiles").append(b);
+});
+const OTHERS = [...(CFG.others || []), {id:"unsure", name:"I'm not sure yet", plan:"Your consult plan",
+  body: fill(CFG.copy.unsure_body || "Most clients start with a conversation. {p} looks at your goals and suggests a plan."),
+  expect:[["Who",`A call with ${CFG.provider.short}`],["You get","A plan built around your goals"],["Pressure","None. Ask everything."]]}];
+OTHERS.forEach(s => {
+  const b = document.createElement("button"); b.type = "button"; b.className = "opt";
+  b.innerHTML = `<span class="dot"></span>${esc(s.name)}`;
+  b.onclick = () => choose(s);
+  $("#elseList").append(b);
+});
+$("#elseBtn").onclick = () => {
+  const l = $("#elseList"), open = l.hidden; l.hidden = !open;
+  $("#elseBtn").setAttribute("aria-expanded", open); $("#elseBtn span").textContent = open ? "−" : "+";
+};
+
+/* step 2: matched B&As or what-to-expect */
+function fillStep2(s){
+  $("#baHead").textContent = s.imgs ? "Is this the result you want?" : "Here's what to expect";
+  $("#baBody").innerHTML = `<b style="font-weight:600">${esc(s.name)}.</b> ${esc(s.body)}`;
+  const m = $("#baMedia"); m.innerHTML = "";
+  if(s.imgs) m.append(carousel(s.imgs));
+  else { const u = document.createElement("ul"); u.className = "expect"; u.innerHTML = s.expect.map(([a,b])=>`<li><b>${esc(a)}</b>${esc(b)}</li>`).join(""); m.append(u); }
+}
+function carousel(imgs){
+  const w = document.createElement("div"), multi = imgs.length > 1;
+  w.innerHTML = `<div class="ba"><div class="strip">${imgs.map(([src,c])=>`<figure><img src="${src}" alt="${esc(CFG.clinic.short)} before and after: ${esc(c)}"></figure>`).join("")}</div>
+    ${multi?`<button type="button" class="nav prev" aria-label="Previous result" disabled>‹</button><button type="button" class="nav next" aria-label="Next result">›</button>`:""}</div>
+    <p class="cap">${esc(imgs[0][1])}</p>
+    ${multi?`<div class="dots">${imgs.map((_,i)=>`<i class="${i?"":"on"}"></i>`).join("")}</div>`:""}
+    <p class="note">Real ${esc(CFG.clinic.short)} patients, from their Instagram. Results vary.</p>`;
+  if(multi){
+    const strip = w.querySelector(".strip"), prev = w.querySelector(".prev"), next = w.querySelector(".next"), cap = w.querySelector(".cap"), dots = [...w.querySelectorAll(".dots i")];
+    const idx = () => Math.round(strip.scrollLeft / strip.clientWidth);
+    const sync = () => { const i = idx(); prev.disabled = i===0; next.disabled = i===imgs.length-1; cap.textContent = imgs[i][1]; dots.forEach((d,j)=>d.classList.toggle("on", j===i)); };
+    strip.addEventListener("scroll", () => requestAnimationFrame(sync), {passive:true});
+    prev.onclick = () => strip.scrollTo({left:(idx()-1)*strip.clientWidth, behavior:"smooth"});
+    next.onclick = () => strip.scrollTo({left:(idx()+1)*strip.clientWidth, behavior:"smooth"});
+  }
+  return w;
+}
+
+/* question steps: why-we-ask + a tailored answer note */
+QUESTIONS.forEach((q,i) => {
+  const el = document.createElement("div"); el.className = "step"; el.dataset.step = 3 + i;
+  el.innerHTML = `<h1>${esc(q.head)}</h1><p class="sub">${esc(q.why)}</p>
+    <div class="opts">${q.opts.map(([v,l])=>`<button type="button" class="opt" data-v="${esc(v)}"><span class="dot"></span>${esc(l)}</button>`).join("")}</div>
+    <div class="insight" hidden></div>
+    <div class="actions"><button class="btn" type="button" data-next disabled>Continue</button><button class="back" type="button" data-back>Back</button></div>`;
+  el.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    el.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel")); b.classList.add("sel");
+    const o = q.opts.find(x=>x[0]===b.dataset.v); state.answers[q.key] = o;
+    const ins = el.querySelector(".insight"); ins.hidden = false; ins.textContent = o[2];
+    ins.style.animation = "none"; void ins.offsetWidth; ins.style.animation = "rise .3s var(--ease) both";
+    el.querySelector("[data-next]").disabled = false;
+  });
+  $("#qsteps").append(el);
+});
+
+/* contact */
+$("#form").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = $("#f-first"), p = $("#f-phone"), em = $("#f-email");
+  [f,p,em].forEach(x=>x.classList.remove("bad"));
+  const digits = p.value.replace(/\D/g,"").replace(/^1(?=\d{10}$)/,"");
+  let msg = "", bad = null;
+  if(!f.value.trim()){ msg = "Add your first name."; bad = f; }
+  else if(digits.length !== 10){ msg = `Add a 10-digit mobile number so ${P} can call you.`; bad = p; }
+  else if(em.value.trim() && !/^\S+@\S+\.\S+$/.test(em.value.trim())){ msg = "Check the email, or leave it blank."; bad = em; }
+  const err = $("#err"); err.textContent = msg; err.classList.toggle("show", !!msg);
+  if(bad){ bad.classList.add("bad"); bad.focus(); return; }
+  state.name = f.value.trim().replace(/[<>&"]/g, ""); state.phone = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+  analyze();
+});
+
+function analyze(){
+  screen("sc-an");
+  const items = $$("#anList .an-item"); items.forEach(i=>i.classList.remove("on"));
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  items.forEach((it,i) => setTimeout(()=>it.classList.add("on"), reduce ? 0 : 450*(i+1)));
+  setTimeout(showResult, reduce ? 300 : 450*items.length + 500);
+}
+
+function showResult(){
+  const s = state.svc, a = state.answers, goal = a.change || Object.values(a)[0];
+  $("#rType").textContent = s.plan;
+  $("#rLede").textContent = goal && goal[3] ? `${state.name}, you want ${goal[3]}, so ${P} will start your call there. ${s.body}` : `${state.name}, ${s.body}`;
+  const m = $("#rMedia"); m.innerHTML = "";
+  if(s.imgs) m.append(carousel(s.imgs));
+  const rows = [["Interest", s.name], ...QUESTIONS.map(q => [q.label || q.key[0].toUpperCase()+q.key.slice(1), a[q.key] ? a[q.key][1] : ""]), ["Next step", `${CFG.consult.label[0].toUpperCase()+CFG.consult.label.slice(1)} with ${P}`]];
+  $("#rPlan").innerHTML = rows.map(([k,v])=>`<li><span>${esc(k)}</span>${esc(v)}</li>`).join("");
+  $("#callto").textContent = `We'll call you at ${state.phone}.`;
+  buildDays();
+  screen("sc-res");
+}
+
+/* reviews: only real ones from the config; section hidden when there are none */
+if((CFG.reviews || []).length){
+  CFG.reviews.forEach(r => { const q = document.createElement("blockquote"); q.className = "quote"; q.innerHTML = `<p>“${esc(r.quote)}”</p><footer>${esc(r.name)}, ${esc(CFG.clinic.short)} client</footer>`; $("#voices").append(q); });
+} else $("#voices").hidden = true;
+
+/* sticky CTA hides while the main CTA or the calendar is on screen */
+const sticky = $("#sticky"), seen = new Set();
+const io = new IntersectionObserver(es => { es.forEach(e => e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)); sticky.classList.toggle("off", seen.size>0); });
+io.observe($("#mainCta")); io.observe($("#cal"));
+
+/* demo calendar inside the clinic's real hours (CFG.hours: weekday 0=Sun -> [open, close] in 24h) */
+const HOURS = CFG.hours;
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const fmt = m => { const h = Math.floor(m/60), mm = m%60; return `${(h+11)%12+1}:${String(mm).padStart(2,"0") /* taste-skill-ignore: clock minutes */} ${h<12?"am":"pm"}`; };
+function buildDays(){
+  const wrap = $("#days"); wrap.innerHTML = ""; const d0 = new Date(); d0.setHours(0,0,0,0);
+  let added = 0;
+  for(let i=1; added<8 && i<20; i++){
+    const d = new Date(d0); d.setDate(d0.getDate()+i);
+    if(!HOURS[d.getDay()]) continue; added++;
+    const b = document.createElement("button"); b.type = "button"; b.className = "day"; b.setAttribute("aria-pressed","false");
+    b.innerHTML = `<small>${DOW[d.getDay()]}</small><b>${d.getDate()}</b>`;
+    b.setAttribute("aria-label", d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}));
+    b.onclick = () => { $$(".day").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); state.day = d; buildSlots(d); };
+    wrap.append(b);
+  }
+  wrap.querySelector(".day").click();
+}
+function buildSlots(d){
+  const box = $("#slots"); box.innerHTML = ""; state.slot = null; $("#confirm").disabled = true;
+  const [o,c] = HOURS[d.getDay()], seed = d.getDate()*13 + d.getMonth();
+  for(let m=o*60; m<c*60-15; m+=30){
+    if((seed + m/30) % 3 === 0) continue;
+    const b = document.createElement("button"); b.type = "button"; b.className = "slot"; b.textContent = fmt(m); b.setAttribute("aria-pressed","false");
+    b.onclick = () => { $$(".slot").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); state.slot = fmt(m); $("#confirm").disabled = false; };
+    box.append(b);
+  }
+}
+$("#confirm").onclick = () => {
+  $("#okHead").textContent = `You're all set, ${state.name}`;
+  const label = CFG.consult.label[0].toUpperCase() + CFG.consult.label.slice(1);
+  $("#ticket").innerHTML = `<span class="flag">Demo, not booked</span><strong>${esc(label)}: ${esc(state.svc.name)}</strong>
+    <span>${state.day.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})} at ${state.slot}</span>
+    <span>${esc(P)} calls you at ${state.phone}</span>`;
+  screen("sc-ok");
+};
+$("#restart").onclick = () => {
+  $("#form").reset(); $("#err").classList.remove("show"); state.answers = {};
+  $$(".opt").forEach(o=>o.classList.remove("sel")); $$(".insight").forEach(i=>i.hidden=true); $$("#qsteps [data-next]").forEach(b=>b.disabled=true);
+  $$(".tile").forEach(t=>t.classList.remove("sel")); screen("sc-quiz"); go(1);
+};
+</script>

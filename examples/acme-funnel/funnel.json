@@ -1,0 +1,32 @@
+{
+  "title": "Acme Consult Finder",
+  "builder": "Your Studio",
+  "clinic": { "name": "Acme Aesthetics", "short": "Acme", "address": "1 Main St, Springfield" },
+  "wordmark": { "text": "Acme", "font": "Bodoni Moda", "weight": 600 },
+  "theme": { "ground": "#EFEAE4", "ink": "#231A16", "action": "#2B211D", "accent": "#8A6A55", "on_action": "#F5F1EB", "text_font": "Jost" },
+  "provider": {
+    "name": "Jane Doe", "short": "Jane", "credentials": "NP-C",
+    "role": "Acme founder and nurse practitioner",
+    "role_short": "Founder, Acme Aesthetics", "role_long": "Founder and nurse practitioner",
+    "photo": "picks/provider/jane.jpg", "photo_source": "https://example.com/team/"
+  },
+  "consult": { "label": "free phone consult" },
+  "copy": { "headline": "What would you like to change?", "subhead": "Tap one to see real Acme results." },
+  "hours": { "2": [10, 18], "3": [10, 18], "4": [10, 18], "6": [9, 14] },
+  "services": [
+    { "id": "lips", "name": "Lip filler", "plan": "Your natural lip plan",
+      "body": "SAMPLE TEXT. Write one or two sentences sourced from the clinic's own posts or site.",
+      "imgs": [["picks/lips/sample_1.jpg", "Sample caption: what was treated, from the post", "https://www.instagram.com/p/EXAMPLE1/"],
+               ["picks/lips/sample_2.jpg", "Sample caption: what was treated, from the post", "https://www.instagram.com/p/EXAMPLE2/"]] },
+    { "id": "botox", "name": "Botox", "plan": "Your smooth-lines plan",
+      "body": "SAMPLE TEXT. Write one or two sentences sourced from the clinic's own posts or site.",
+      "imgs": [["picks/botox/sample_1.jpg", "Sample caption: what was treated, from the post", "https://www.instagram.com/p/EXAMPLE3/"]] }
+  ],
+  "others": [
+    { "id": "lhr", "name": "Laser hair removal", "plan": "Your laser hair removal plan",
+      "body": "SAMPLE TEXT. No photo yet, so this sits under Something else.",
+      "expect": [["Sessions", "A series spaced weeks apart"], ["Consult", "We check skin and hair type first"]] }
+  ],
+  "reviews": [ { "quote": "SAMPLE REVIEW. Replace with a real one, word for word.", "name": "Sample", "source": "https://example.com/reviews/" } ],
+  "prices_sourced": false
+}
